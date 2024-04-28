@@ -1,0 +1,142 @@
+.userInputs {
+    display: flex;
+    width: 100%;
+    height: 10vh;
+    align-items: end;
+    margin-left: 5%;
+}
+
+#dropdown {
+    font-size: 16px;
+    cursor: pointer;
+    height: 50%;
+    border-radius: 5px;
+    padding-left: 5px;
+    height: 3vh;
+}
+
+.userInputs p {
+    line-height: 1%;
+    margin: 0;
+}
+
+.userInputs .number {
+    margin-top: 7.5%;
+    border-radius: 5px;
+    padding-left: 5px;
+    height: 2.5vh;
+}
+
+.box {
+    margin: 0 1%;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+/* CSS styles for the table */
+.containerTable {
+    max-width: 90%; /* Optional: Set maximum width for the table */
+    margin: 2.5% auto; /* Center the container horizontally */
+    display: flex;
+    justify-content: center;
+}
+table {
+    display: flex;
+    border-collapse: collapse;
+    max-width: 90%;
+    border: 2px solid #ddd; /* Border for the table */
+    table-layout: fixed; /* Set the table layout to fixed */
+}
+
+/* CSS styles for table header */
+th {
+    border: 1px solid #ddd; /* Border for table header cells */
+    padding: 8px;
+    text-align: left;
+    background-color: #f2f2f2;
+}
+
+/* CSS styles for table data cells */
+td {
+    border: 1px solid #ddd; /* Border for table data cells */
+    width: 5rem;
+    height: 2rem;
+    padding: 0; /* Adjust padding as needed */
+}
+
+/* CSS styles for columns from Completion Time up to Response Time */
+td:nth-child(n+4):nth-child(-n+7) {
+    padding: 8px;
+}
+
+/* CSS styles for alternating row colors */
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* CSS styles for input fields inside table cells */
+.numTable {
+    width: 97%;
+    margin: 0;
+    padding: 8px 0;
+    border: none;
+    background-color: transparent;
+}
+/* CSS styles for setting equal width to each column */
+#processTable th,
+#processTable td {
+    width: calc(20rem / 7); /* Assuming 7 columns in the table */
+}
+
+.btnBox {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+}
+
+.btnSolve {
+    width: 10%;
+}
+
+
+
+
+
+.dropbtn:hover,
+.dropbtn:focus {
+    background-color: #2980B9;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown a:hover {
+    background-color: #ddd;
+}
+
+.show {
+    display: block;
+}

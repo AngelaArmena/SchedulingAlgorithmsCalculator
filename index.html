@@ -1,22 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smiley Face</title>
-    <style>
-        * {
-            padding: 0;
-            margin: 0;
-        }
-        .smiley {
-            font-size: 50rem;
-            text-align: center;
-            color: #8a3324;
-        }
-    </style>
+    <title>Scheduling Algorithms</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <div class="smiley">&#9786;</div>
+    <div class="userInputs">
+        <select id="dropdown" onchange="dropdownOpen()">
+            <option disabled selected style="display: none;"> ---Choose algorithm--- </option>
+            <option> First Come First Serve </option>
+            <option> Shortest Job First </option>
+            <option> Shortest Remaining Time First </option>
+            <option> Round Robin </option>
+            <option> Priority </option>
+        </select>
+        <div class="box">
+            <p>Number of Processes:</p>
+            <input type="number" class="number" id="numProcesses" value="2">
+        </div>
+        <div class="box" id="timeQuantum" style="display: none;">
+            <p>Time Quantum:</p>
+            <input type="number" class="number" id="numTimeQuantum">
+        </div>
+        <div class="box">
+            <p>Switch Time (optional):</p>
+            <input type="number" class="number" id="numSwitchTime">
+        </div>
+        <p><input type="checkbox" id="ioCheckbox" name="ioCheckbox" onclick="toggleIOBurst()"> with I/O Completion</p>
+        <div class="box" id="ioBurst" style="display: none;">
+            <p>Number of I/O Bursts:</p>
+            <input type="number" class="number" id="numIoBurst" value="1" oninput="maxInput(this)">
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="containerTable">
+        <table id="processTable" style="display:none;">
+            <thead>
+                <tr>
+                    <th>Process</th>
+                    <th>AT</th>
+                    <th>BT</th>
+                    <th>CT</th>
+                    <th>TAT</th>
+                    <th>WT</th>
+                    <th>RT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be added dynamically using JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="btnBox">
+        <button class="btnSolve" onclick="solve()">SOLVE</button>
+    </div>
+
+    <!-- DITO YUNG GANTT CHART -->
+
+    <script src="script.js"></script>
 </body>
+
 </html>
