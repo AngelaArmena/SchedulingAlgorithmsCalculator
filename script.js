@@ -7,7 +7,7 @@ function dropdownOpen() {
     if (selectedAlgorithm === "Round Robin") {
         removePriorityColumn();
         timeQuantumBox.style.display = "block";
-    } 
+    }
     else if (selectedAlgorithm === "Priority") {
         timeQuantumBox.style.display = "none";
         console.log('priority');
@@ -24,12 +24,12 @@ function dropdownOpen() {
             var priorityDataCell = document.createElement("td");
             var input = document.createElement("input");
             input.type = "number";
-            input.className = "number numTable";
+            input.className = "number numTable priority";
             priorityDataCell.appendChild(input);
             var targetCell = row.querySelectorAll("td")[insertionIndex];
             targetCell.insertAdjacentElement('afterend', priorityDataCell);
         });
-    } 
+    }
     else {
         removePriorityColumn();
         timeQuantumBox.style.display = "none";
@@ -81,8 +81,8 @@ function generateTableRows() {
         var responseCell = row.insertCell(6);
 
         processCell.innerHTML = "P" + i;
-        arrivalCell.innerHTML = "<input type='number' class='number numTable'>";
-        burstCell.innerHTML = "<input type='number' class='number numTable'>";
+        arrivalCell.innerHTML = "<input type='number' class='number numTable AT'>";
+        burstCell.innerHTML = "<input type='number' class='number numTable CPU'>";
         completionCell.innerHTML = "";
         turnaroundCell.innerHTML = "";
         waitingCell.innerHTML = "";
@@ -134,7 +134,7 @@ function generateIoBurstColumns() {
             var ioBurstDataCell = document.createElement("td");
             var input = document.createElement("input");
             input.type = "number";
-            input.className = "numTable";
+            input.className = "number numTable CPU";
             ioBurstDataCell.appendChild(input);
             var targetCell = row.querySelectorAll("td")[insertionIndex - 1];
             targetCell.insertAdjacentElement('afterend', ioBurstDataCell);
@@ -142,12 +142,18 @@ function generateIoBurstColumns() {
             var ioBurstDataCell = document.createElement("td");
             var input = document.createElement("input");
             input.type = "number";
-            input.className = "numTable";
+            input.className = "number numTable IO";
             ioBurstDataCell.appendChild(input);
             var targetCell = row.querySelectorAll("td")[insertionIndex];
             targetCell.insertAdjacentElement('afterend', ioBurstDataCell);
         });
     }
+
+    // Clear all input values
+    var allInputs = document.querySelectorAll(".numTable");
+    allInputs.forEach(function (input) {
+        input.value = "";
+    });
 }
 
 // Function to remove I/O Burst columns from the table
@@ -198,6 +204,66 @@ function solve() {
     var dropdown = document.getElementById("dropdown");
     var selectedAlgorithm = dropdown.options[dropdown.selectedIndex].text;
     console.log(selectedAlgorithm);
+
+    // Get the values from the input fields
+    var inputsAT = document.querySelectorAll(".numTable.AT");
+    var inputsCPU = document.querySelectorAll(".numTable.CPU");
+    var inputsIO = document.querySelectorAll(".numTable.IO");
+
+    var valuesAT = [];
+    var valuesCPU = [];
+    var valuesIO = [];
+
+    inputsAT.forEach(function (input) { valuesAT.push(input.value); });
+
+    // Check if valuesCPU has 2x more elements than valuesAT
+    if (inputsCPU.length === 2 * inputsAT.length) {
+        var firstCPU = [];
+        var secondCPU = [];
+        Array.from(inputsCPU).forEach(function (input, index) {
+            if (index % 2 === 0) {
+                firstCPU.push(input.value);
+            } else {
+                secondCPU.push(input.value);
+            }
+        });
+        valuesCPU.push([firstCPU], [secondCPU]);
+
+        inputsIO.forEach(function (input) { valuesIO.push(input.value); });
+    }
+    else if (inputsCPU.length === 3 * inputsAT.length) {
+        var firstCPU = [];
+        var secondCPU = [];
+        var thirdCPU = [];
+        Array.from(inputsCPU).forEach(function (input, index) {
+            if (index % 3 === 0) {
+                firstCPU.push(input.value);
+            } else if (index % 3 === 1) {
+                secondCPU.push(input.value);
+            } else {
+                thirdCPU.push(input.value);
+            }
+        });
+        valuesCPU.push([firstCPU], [secondCPU], [thirdCPU]);
+
+        var firstIO = [];
+        var secondIO = [];
+        Array.from(inputsIO).forEach(function (input, index) {
+            if (index % 2 === 0) {
+                firstIO.push(input.value);
+            } else {
+                secondIO.push(input.value);
+            }
+        });
+        valuesIO.push([firstIO], [secondIO]);
+    }
+    else {
+        inputsCPU.forEach(function (input) { valuesCPU.push(input.value); });
+    }
+
+    console.log(JSON.stringify(valuesAT));
+    console.log(JSON.stringify(valuesCPU));
+    console.log(JSON.stringify(valuesIO));
 
     if (selectedAlgorithm == "First Come First Serve") {
 
