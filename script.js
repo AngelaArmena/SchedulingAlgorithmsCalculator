@@ -275,7 +275,57 @@ function solve() {
 
     }
     else if (selectedAlgorithm == "Round Robin") {
+        var timeQuantum = parseInt(document.getElementById("numTimeQuantum").value);
+        var currentTime = 0;
+        var remainingCPU = [...valuesCPU];
+        var waitingTime = new Array(remainingCPU.length).fill(0);
+        var completionTime = new Array(remainingCPU.length).fill(0);
+        var turnaroundTime = new Array(remainingCPU.length).fill(0);
+        var responseTime = new Array(remainingCPU.length).fill(-1);
+        var processQueue = [];
 
+        while (remainingCPU.some(time => time > 0)) {
+            for (var i = 0; i < remainingCPU.length; i++) {
+                if (remainingCPU[i] > 0) {
+                    if (responseTime[i] === -1) {
+                        responseTime[i] = currentTime;
+                    }
+                    var executeTime = Math.min(timeQuantum, remainingCPU[i]);
+                    remainingCPU[i] -= executeTime;
+                    currentTime += executeTime;
+                    processQueue.push(i);
+
+                    if (remainingCPU[i] === 0) {
+                        completionTime[i] = currentTime;
+                            turnaroundTime[i] = completionTime[i] - valuesAT[i];
+                            waitingTime[i] = turnaroundTime[i] - valuesCPU[i];
+                    }
+                }
+            }
+        }
+
+        // Display results in the table
+        var tableBody = document.querySelector("#processTable tbody");
+        tableBody.innerHTML = ""; // Clear previous rows
+
+        for (var i = 0; i < valuesAT.length; i++) {
+            var row = tableBody.insertRow();
+            var cellProcess = row.insertCell(0);
+            var cellAT = row.insertCell(1);
+            var cellBT = row.insertCell(2);
+            var cellCT = row.insertCell(3);
+            var cellTAT = row.insertCell(4);
+            var cellWT = row.insertCell(5);
+            var cellRT = row.insertCell(6);
+
+            cellProcess.textContent = "P" + (i + 1);
+            cellAT.textContent = valuesAT[i];
+            cellBT.textContent = valuesCPU[i];
+            cellCT.textContent = completionTime[i];
+            cellTAT.textContent = turnaroundTime[i];
+            cellWT.textContent = waitingTime[i];
+            cellRT.textContent = responseTime[i];
+        }
     }
     else if (selectedAlgorithm == "Priority") {
 
