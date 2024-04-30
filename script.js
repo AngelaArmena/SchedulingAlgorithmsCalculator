@@ -224,6 +224,8 @@ function solve() {
     var inputsCPU = document.querySelectorAll(".numTable.CPU");
     var inputsIO = document.querySelectorAll(".numTable.IO");
 
+    var switchTime = parseInt(document.getElementById("numSwitchTime").value);
+
     var valuesAT = [];
     var valuesCPU = [];
     var valuesIO = [];
@@ -295,7 +297,7 @@ function solve() {
     }
     else if (selectedAlgorithm === "Round Robin") {
         var timeQuantum = parseInt(document.getElementById("numTimeQuantum").value);
-        roundRobin(valuesAT, valuesCPU, timeQuantum);
+        roundRobin(valuesAT, valuesCPU, timeQuantum, switchTime);
 
         displayTable(valuesAT, valuesCPU, completionTime, turnaroundTime, waitingTime, responseTime)
     }
@@ -304,7 +306,7 @@ function solve() {
     }
 }
 
-function roundRobin(arrivalTime, burstTime, timeQuantum) {
+function roundRobin(arrivalTime, burstTime, timeQuantum, switchTime) {
     var n = arrivalTime.length;
     var remainingTime = Array.from(burstTime);
     var currentTime = 0;
@@ -349,6 +351,8 @@ function roundRobin(arrivalTime, burstTime, timeQuantum) {
                     // Insert the executed process before the first process that has not yet arrived
                     queue.splice(indexToInsert - 1, 0, queue.shift());
                 }
+
+                currentTime += switchTime;
             }
             else {
                 currentTime++;
@@ -360,7 +364,9 @@ function roundRobin(arrivalTime, burstTime, timeQuantum) {
 
 function displayTable(valuesAT, valuesCPU, completionTime, turnaroundTime, waitingTime, responseTime) {
     var tableBody = document.querySelector("#processTable tbody");
-    tableBody.innerHTML = ""; // Clear previous rows
+    
+    // Clear existing rows
+    tableBody.innerHTML = "";
 
     for (var i = 0; i < valuesAT.length; i++) {
         var row = tableBody.insertRow();
@@ -373,8 +379,20 @@ function displayTable(valuesAT, valuesCPU, completionTime, turnaroundTime, waiti
         var cellRT = row.insertCell(6);
 
         cellProcess.textContent = "P" + (i + 1);
-        cellAT.textContent = valuesAT[i];
-        cellBT.textContent = valuesCPU[i];
+        // Retain the textbox for Arrival Time
+        var inputAT = document.createElement('input');
+        inputAT.type = 'number';
+        inputAT.className = 'number numTable AT';
+        inputAT.value = valuesAT[i];
+        cellAT.appendChild(inputAT);
+
+        // Retain the textbox for Burst Time
+        var inputBT = document.createElement('input');
+        inputBT.type = 'number';
+        inputBT.className = 'number numTable CPU';
+        inputBT.value = valuesCPU[i];
+        cellBT.appendChild(inputBT);
+
         cellCT.textContent = completionTime[i];
         cellTAT.textContent = turnaroundTime[i];
         cellWT.textContent = waitingTime[i];
