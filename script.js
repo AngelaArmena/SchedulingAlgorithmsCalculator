@@ -214,6 +214,11 @@ function solve() {
     var valuesCPU = [];
     var valuesIO = [];
 
+    var completionTime = [];
+    var turnaroundTime = [];
+    var waitingTime = [];
+    var responseTime = [];
+
     inputsAT.forEach(function (input) { valuesAT.push(input.value); });
 
     // Check if valuesCPU has 2x more elements than valuesAT
@@ -265,69 +270,119 @@ function solve() {
     console.log(JSON.stringify(valuesCPU));
     console.log(JSON.stringify(valuesIO));
 
-    if (selectedAlgorithm == "First Come First Serve") {
+    if (selectedAlgorithm === "First Come First Serve") {
 
     }
-    else if (selectedAlgorithm == "Shortest Job First") {
+    else if (selectedAlgorithm === "Shortest Job First") {
 
     }
-    else if (selectedAlgorithm == "Shortest Remaining Time First") {
+    else if (selectedAlgorithm === "Shortest Remaining Time First") {
 
     }
-    else if (selectedAlgorithm == "Round Robin") {
+    else if (selectedAlgorithm === "Round Robin") {
         var timeQuantum = parseInt(document.getElementById("numTimeQuantum").value);
-        var currentTime = 0;
-        var remainingCPU = [...valuesCPU];
-        var waitingTime = new Array(remainingCPU.length).fill(0);
-        var completionTime = new Array(remainingCPU.length).fill(0);
-        var turnaroundTime = new Array(remainingCPU.length).fill(0);
-        var responseTime = new Array(remainingCPU.length).fill(-1);
-        var processQueue = [];
+        var solvedProcessesInfo = roundRobin(valuesAT, valuesCPU, timeQuantum);
 
-        while (remainingCPU.some(time => time > 0)) {
-            for (var i = 0; i < remainingCPU.length; i++) {
-                if (remainingCPU[i] > 0) {
+        // Calculate completion time, turnaround time, and waiting time
+        var completionTime = [];
+        var turnaroundTime = [];
+        var waitingTime = [];
+
+        for (var i = 0; i < valuesAT.length; i++) {
+            completionTime[i + 1] = solvedProcessesInfo[i].ft;
+            turnaroundTime[i + 1] = solvedProcessesInfo[i].tat;
+            waitingTime[i + 1] = solvedProcessesInfo[i].wat;
+        }
+
+        completionTime = solvedProcessesInfo.map(process => process.ct);
+        turnaroundTime = solvedProcessesInfo.map(process => process.tat);
+        waitingTime = solvedProcessesInfo.map(process => process.wat);
+        responseTime = solvedProcessesInfo.map(process => process.rt);
+
+        console.log("Completion Time: ", completionTime);
+        console.log("Turnaround Time: ", turnaroundTime);
+        console.log("Waiting Time: ", waitingTime);
+        console.log("Response Time: ", responseTime);
+
+        displayTable(valuesAT, valuesCPU, completionTime, turnaroundTime, waitingTime, responseTime)
+    }
+    else if (selectedAlgorithm === "Priority") {
+
+    }
+}
+
+function roundRobin(arrivalTime, burstTime, timeQuantum) {
+    var n = arrivalTime.length;
+    var remainingTime = Array.from(burstTime);
+    var currentTime = 0;
+    var completed = 0;
+    var waitingTime = Array(n).fill(0);
+    var turnaroundTime = Array(n).fill(0);
+    var completionTime = Array(n).fill(0);
+    var responseTime = Array(n).fill(-1); // -1 indicates not yet started
+    
+    while (completed < n) {
+        var done = true; // Flag to check if a process is completed in this time slice
+        for (var i = 0; i < n; i++) {
+            if (remainingTime[i] > 0) {
+                if (parseInt(arrivalTime[i]) <= currentTime) {
                     if (responseTime[i] === -1) {
-                        responseTime[i] = currentTime;
+                        responseTime[i] = currentTime - parseInt(arrivalTime[i]);
                     }
-                    var executeTime = Math.min(timeQuantum, remainingCPU[i]);
-                    remainingCPU[i] -= executeTime;
-                    currentTime += executeTime;
-                    processQueue.push(i);
-
-                    if (remainingCPU[i] === 0) {
-                        completionTime[i] = currentTime;
-                            turnaroundTime[i] = completionTime[i] - valuesAT[i];
-                            waitingTime[i] = turnaroundTime[i] - valuesCPU[i];
+                    var executeTime = Math.min(remainingTime[i], timeQuantum); // Calculate time to execute this iteration
+                    currentTime += executeTime; // Increment current time
+                    remainingTime[i] -= executeTime; // Decrease remaining time for the process
+                    
+                    if (remainingTime[i] === 0) {
+                        completionTime[i] = currentTime; // Process completes execution
+                        turnaroundTime[i] = completionTime[i] - parseInt(arrivalTime[i]); // Calculate turnaround time
+                        waitingTime[i] = turnaroundTime[i] - parseInt(burstTime[i]); // Calculate waiting time
+                        completed++; // Increment completed count
+                    } else {
+                        done = false; // There are still processes to execute in this time slice
                     }
                 }
             }
         }
-
-        // Display results in the table
-        var tableBody = document.querySelector("#processTable tbody");
-        tableBody.innerHTML = ""; // Clear previous rows
-
-        for (var i = 0; i < valuesAT.length; i++) {
-            var row = tableBody.insertRow();
-            var cellProcess = row.insertCell(0);
-            var cellAT = row.insertCell(1);
-            var cellBT = row.insertCell(2);
-            var cellCT = row.insertCell(3);
-            var cellTAT = row.insertCell(4);
-            var cellWT = row.insertCell(5);
-            var cellRT = row.insertCell(6);
-
-            cellProcess.textContent = "P" + (i + 1);
-            cellAT.textContent = valuesAT[i];
-            cellBT.textContent = valuesCPU[i];
-            cellCT.textContent = completionTime[i];
-            cellTAT.textContent = turnaroundTime[i];
-            cellWT.textContent = waitingTime[i];
-            cellRT.textContent = responseTime[i];
+        if (done) {
+            currentTime++; // No process executed in this time slice (idle CPU time)
         }
     }
-    else if (selectedAlgorithm == "Priority") {
 
+    var solvedProcessesInfo = [];
+    for (var j = 0; j < n; j++) {
+        solvedProcessesInfo.push({
+            ct: completionTime[j],
+            tat: turnaroundTime[j],
+            wat: waitingTime[j],
+            rt: responseTime[j]
+        });
+    }
+    
+    // console.log("QUEUE", JSON.stringify(queue));
+    return solvedProcessesInfo;
+}
+
+function displayTable(valuesAT, valuesCPU, completionTime, turnaroundTime, waitingTime, responseTime) {
+    var tableBody = document.querySelector("#processTable tbody");
+    tableBody.innerHTML = ""; // Clear previous rows
+
+    for (var i = 0; i < valuesAT.length; i++) {
+        var row = tableBody.insertRow();
+        var cellProcess = row.insertCell(0);
+        var cellAT = row.insertCell(1);
+        var cellBT = row.insertCell(2);
+        var cellCT = row.insertCell(3);
+        var cellTAT = row.insertCell(4);
+        var cellWT = row.insertCell(5);
+        var cellRT = row.insertCell(6);
+
+        cellProcess.textContent = "P" + (i + 1);
+        cellAT.textContent = valuesAT[i];
+        cellBT.textContent = valuesCPU[i];
+        cellCT.textContent = completionTime[i];
+        cellTAT.textContent = turnaroundTime[i];
+        cellWT.textContent = waitingTime[i];
+        cellRT.textContent = responseTime[i];
     }
 }
