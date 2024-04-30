@@ -200,6 +200,11 @@ function removePriorityColumn() {
 // Add event listener to the "Number of I/O Bursts" input field
 document.getElementById("numIoBurst").addEventListener("input", generateIoBurstColumns);
 
+var completionTime = [];
+var turnaroundTime = [];
+var waitingTime = [];
+var responseTime = [];
+
 function solve() {
     var dropdown = document.getElementById("dropdown");
     var selectedAlgorithm = dropdown.options[dropdown.selectedIndex].text;
@@ -214,10 +219,10 @@ function solve() {
     var valuesCPU = [];
     var valuesIO = [];
 
-    var completionTime = [];
-    var turnaroundTime = [];
-    var waitingTime = [];
-    var responseTime = [];
+    completionTime = [];
+    turnaroundTime = [];
+    waitingTime = [];
+    responseTime = [];
 
     inputsAT.forEach(function (input) { valuesAT.push(input.value); });
 
@@ -266,8 +271,8 @@ function solve() {
         inputsCPU.forEach(function (input) { valuesCPU.push(input.value); });
     }
 
-    console.log(JSON.stringify(valuesAT));
-    console.log(JSON.stringify(valuesCPU));
+    console.log("Arrival Time: ", JSON.stringify(valuesAT));
+    console.log("Burst Time", JSON.stringify(valuesCPU));
     console.log(JSON.stringify(valuesIO));
 
     if (selectedAlgorithm === "First Come First Serve") {
@@ -281,28 +286,7 @@ function solve() {
     }
     else if (selectedAlgorithm === "Round Robin") {
         var timeQuantum = parseInt(document.getElementById("numTimeQuantum").value);
-        var solvedProcessesInfo = roundRobin(valuesAT, valuesCPU, timeQuantum);
-
-        // Calculate completion time, turnaround time, and waiting time
-        var completionTime = [];
-        var turnaroundTime = [];
-        var waitingTime = [];
-
-        for (var i = 0; i < valuesAT.length; i++) {
-            completionTime[i + 1] = solvedProcessesInfo[i].ft;
-            turnaroundTime[i + 1] = solvedProcessesInfo[i].tat;
-            waitingTime[i + 1] = solvedProcessesInfo[i].wat;
-        }
-
-        completionTime = solvedProcessesInfo.map(process => process.ct);
-        turnaroundTime = solvedProcessesInfo.map(process => process.tat);
-        waitingTime = solvedProcessesInfo.map(process => process.wat);
-        responseTime = solvedProcessesInfo.map(process => process.rt);
-
-        console.log("Completion Time: ", completionTime);
-        console.log("Turnaround Time: ", turnaroundTime);
-        console.log("Waiting Time: ", waitingTime);
-        console.log("Response Time: ", responseTime);
+        roundRobin(valuesAT, valuesCPU, timeQuantum);
 
         displayTable(valuesAT, valuesCPU, completionTime, turnaroundTime, waitingTime, responseTime)
     }
@@ -316,51 +300,53 @@ function roundRobin(arrivalTime, burstTime, timeQuantum) {
     var remainingTime = Array.from(burstTime);
     var currentTime = 0;
     var completed = 0;
-    var waitingTime = Array(n).fill(0);
-    var turnaroundTime = Array(n).fill(0);
-    var completionTime = Array(n).fill(0);
-    var responseTime = Array(n).fill(-1); // -1 indicates not yet started
-    
+
+    // Create a queue sorted based on arrival time
+    var queue = [];
+    for (var i = 0; i < n; i++) {
+        queue.push(i);
+    }
+    queue.sort((a, b) => arrivalTime[a] - arrivalTime[b]);
+
+    console.log("Initial Queue: ", queue);
+
     while (completed < n) {
-        var done = true; // Flag to check if a process is completed in this time slice
-        for (var i = 0; i < n; i++) {
-            if (remainingTime[i] > 0) {
-                if (parseInt(arrivalTime[i]) <= currentTime) {
-                    if (responseTime[i] === -1) {
-                        responseTime[i] = currentTime - parseInt(arrivalTime[i]);
+        var processIndex = queue[0]; // Process at index 0 of the queue
+        if (remainingTime[processIndex] > 0) {
+            if (parseInt(arrivalTime[processIndex]) <= currentTime) {
+                if (responseTime[processIndex] === undefined) {
+                    responseTime[processIndex] = currentTime - parseInt(arrivalTime[processIndex]);
+                }
+                var executeTime = Math.min(remainingTime[processIndex], timeQuantum); // Calculate time to execute this time quantum
+                currentTime += executeTime; // Increment current time
+                remainingTime[processIndex] -= executeTime; // Decrease remaining time for the process
+
+                if (remainingTime[processIndex] === 0) {
+                    completionTime[processIndex] = currentTime; // Process completes execution
+                    turnaroundTime[processIndex] = completionTime[processIndex] - parseInt(arrivalTime[processIndex]); // Calculate turnaround time
+                    waitingTime[processIndex] = turnaroundTime[processIndex] - parseInt(burstTime[processIndex]); // Calculate waiting time
+                    completed++; // Increment completed count
+                    // Remove completed process from the queue
+                    queue.shift();
+                }
+
+                // Update the queue after every time quantum
+                if (remainingTime[processIndex] > 0) {
+                    // Find the index of the first process that has not yet arrived
+                    var indexToInsert = 0;
+                    while (indexToInsert < queue.length && arrivalTime[queue[indexToInsert]] <= currentTime) {
+                        indexToInsert++;
                     }
-                    var executeTime = Math.min(remainingTime[i], timeQuantum); // Calculate time to execute this iteration
-                    currentTime += executeTime; // Increment current time
-                    remainingTime[i] -= executeTime; // Decrease remaining time for the process
-                    
-                    if (remainingTime[i] === 0) {
-                        completionTime[i] = currentTime; // Process completes execution
-                        turnaroundTime[i] = completionTime[i] - parseInt(arrivalTime[i]); // Calculate turnaround time
-                        waitingTime[i] = turnaroundTime[i] - parseInt(burstTime[i]); // Calculate waiting time
-                        completed++; // Increment completed count
-                    } else {
-                        done = false; // There are still processes to execute in this time slice
-                    }
+                    // Insert the executed process before the first process that has not yet arrived
+                    queue.splice(indexToInsert - 1, 0, queue.shift());
                 }
             }
+            else {
+                currentTime++;
+            }
         }
-        if (done) {
-            currentTime++; // No process executed in this time slice (idle CPU time)
-        }
+        console.log("Updated Queue: ", queue); // Print the updated queue
     }
-
-    var solvedProcessesInfo = [];
-    for (var j = 0; j < n; j++) {
-        solvedProcessesInfo.push({
-            ct: completionTime[j],
-            tat: turnaroundTime[j],
-            wat: waitingTime[j],
-            rt: responseTime[j]
-        });
-    }
-    
-    // console.log("QUEUE", JSON.stringify(queue));
-    return solvedProcessesInfo;
 }
 
 function displayTable(valuesAT, valuesCPU, completionTime, turnaroundTime, waitingTime, responseTime) {
