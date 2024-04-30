@@ -29,6 +29,15 @@ function dropdownOpen() {
             var targetCell = row.querySelectorAll("td")[insertionIndex];
             targetCell.insertAdjacentElement('afterend', priorityDataCell);
         });
+
+        // Add event listeners to the new priority input fields
+        var priorityInputs = document.querySelectorAll(".priority");
+        priorityInputs.forEach(function (input) {
+            input.addEventListener("input", updateSolveButtonState);
+        });
+
+        // Call updateSolveButtonState to ensure button state is updated
+        updateSolveButtonState();
     }
     else {
         removePriorityColumn();
@@ -371,4 +380,60 @@ function displayTable(valuesAT, valuesCPU, completionTime, turnaroundTime, waiti
         cellWT.textContent = waitingTime[i];
         cellRT.textContent = responseTime[i];
     }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Add event listener to the dropdown select element
+    document.getElementById("dropdown").addEventListener("change", updateSolveButtonState);
+
+    //Add event listeners to the Time Quantum input field
+    document.getElementById("numTimeQuantum").addEventListener("input", updateSolveButtonState);
+
+    // Add event listeners to all input fields in the table
+    var inputs = document.querySelectorAll(".numTable");
+    inputs.forEach(function (input) {
+        input.addEventListener("input", updateSolveButtonState);
+    });
+
+    // Call the function initially to set the initial state of the "SOLVE" button
+    updateSolveButtonState();
+});
+
+function updateSolveButtonState() {
+    var dropdown = document.getElementById("dropdown");
+    var selectedAlgorithm = dropdown.options[dropdown.selectedIndex].text;
+
+    // Check if an algorithm is chosen
+    var algorithmChosen = selectedAlgorithm !== "---Choose algorithm---";
+
+    // Check if all textboxes in the table are populated
+    var allTextboxesPopulated = areAllTextboxesPopulated();
+    var timeQuantumPopulatedValue = timeQuantumPopulated(selectedAlgorithm);
+
+    // Enable the "SOLVE" button if both conditions are met, otherwise disable it
+    var solveButton = document.querySelector(".btnSolve");
+    solveButton.disabled = !(algorithmChosen && allTextboxesPopulated);
+    solveButton.disabled = !(algorithmChosen && allTextboxesPopulated && timeQuantumPopulatedValue);
+}
+
+function timeQuantumPopulated(selectedAlgorithm) {
+    var isInput = document.getElementById("numTimeQuantum");
+    var isPopulated = true;
+    if (selectedAlgorithm === "Round Robin") {
+        if (isInput.value === "") {
+            isPopulated = false;
+        }
+    }
+    return isPopulated;
+}
+
+function areAllTextboxesPopulated() {
+    var inputs = document.querySelectorAll(".numTable");
+    var allPopulated = true;
+    inputs.forEach(function (input) {
+        if (input.value === "") {
+            allPopulated = false;
+        }
+    });
+    return allPopulated;
 }
