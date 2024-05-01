@@ -287,8 +287,9 @@ function solve() {
     console.log(JSON.stringify(valuesIO));
 
     if (selectedAlgorithm === "First Come First Serve") {
-
-    }
+        var result = fcfs(valuesAT, valuesCPU); // Calculate FCFS
+        displayTable(valuesAT, valuesCPU, result.completionTime, result.turnaroundTime, result.waitingTime, result.responseTime); // Update table
+    }    
     else if (selectedAlgorithm === "Shortest Job First") {
 
     }
@@ -361,6 +362,48 @@ function roundRobin(arrivalTime, burstTime, timeQuantum, switchTime) {
         console.log("Updated Queue: ", queue); // Print the updated queue
     }
 }
+
+function fcfs(arrivalTime, burstTime) {
+    var n = arrivalTime.length;
+    var completion = new Array(n).fill(0);
+    var turnaround = new Array(n).fill(0);
+    var waiting = new Array(n).fill(0);
+    var response = new Array(n).fill(0);
+
+    // Create a queue sorted based on arrival time
+    var queue = [];
+    for (var i = 0; i < n; i++) {
+        queue.push(i);
+    }
+    queue.sort((a, b) => arrivalTime[a] - arrivalTime[b]);
+
+    console.log("Initial Queue: ", queue);
+
+    // Calculate completion time, turnaround time, and waiting time for each process
+    var currentTime = 0; // Initialize current time
+    for (var i = 0; i < n; i++) {
+        var processIndex = queue[i];
+        if (parseInt(arrivalTime[processIndex]) <= currentTime) {
+            if (response[processIndex] === 0) { // Check if response time is not set
+                response[processIndex] = currentTime - parseInt(arrivalTime[processIndex]); // Calculate response time
+            }
+        }
+        completion[processIndex] = Math.max(currentTime, parseInt(arrivalTime[processIndex])) + parseInt(burstTime[processIndex]);
+        turnaround[processIndex] = completion[processIndex] - parseInt(arrivalTime[processIndex]);
+        waiting[processIndex] = Math.max(0, turnaround[processIndex] - parseInt(burstTime[processIndex]));
+        currentTime = completion[processIndex]; // Update current time
+        // response[processIndex] = Math.max(0, currentTime - parseInt(arrivalTime[processIndex])); // Calculate response time
+    }
+
+    // Return the calculated metrics
+    return {
+        completionTime: completion,
+        turnaroundTime: turnaround,
+        waitingTime: waiting,
+        responseTime: response
+    };
+}
+
 
 function displayTable(valuesAT, valuesCPU, completionTime, turnaroundTime, waitingTime, responseTime) {
     var tableBody = document.querySelector("#processTable tbody");
